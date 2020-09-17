@@ -65,6 +65,7 @@ var budgetController = (function() {
             return item;
         },
 
+        // Delete Money in Budget
         deleteMoney: function(type, numIndex) {
             var ids = info.moneyDetails[type].map(function(current) {
                 return current.id;
@@ -77,6 +78,7 @@ var budgetController = (function() {
             }
         },
 
+        // Calculates budget from both income and expense
         calcBudget: function() {
             calculateTotals('exp');
             calculateTotals('inc');
@@ -91,12 +93,14 @@ var budgetController = (function() {
             }
         },
 
+        // Calculates the percentages
         calcPercs: function() {
             info.moneyDetails.exp.forEach(function(currEl) {
                 currEl.calcPercents(info.moneyAmount.inc);
             });
         },
 
+        // Retrieves the percentages
         getPercs: function() {
             var percentList = info.moneyDetails.exp.map(function(currEl) {
                 return currEl.getPercents();
@@ -104,6 +108,7 @@ var budgetController = (function() {
             return percentList;
         },
 
+        // Retrieves the Budget
         getBudget: function() {
             return {
                 budgetTotal: info.budgetTotal,
@@ -111,10 +116,6 @@ var budgetController = (function() {
                 expTotal: info.moneyAmount.exp,
                 incTotal: info.moneyAmount.inc,
             }
-        },
-
-        testing: function() {
-            console.log(info)
         }
     }
 })();
@@ -137,6 +138,7 @@ var UIController = (function() {
         month: '.budget__title--month'
     };
 
+    // Formats numbers to 2 places
     var reformatNum = function(type, number) {
         var individualPercent = '';
         number = Math.abs(number);
@@ -171,6 +173,7 @@ var UIController = (function() {
         return (type === 'inc' ? '+' : '-') + ' ' + individualPercent + '.' + decNum;
     };
 
+    // ForEach method but for nodes
     var nodeListForEach = function(arrayList, callback) {
         for (let i = 0; i < arrayList.length; i++) {
             callback(arrayList[i], i);
@@ -204,6 +207,7 @@ var UIController = (function() {
             document.querySelector(item).insertAdjacentHTML('beforeend', htmlReplace);
         },
 
+        // Deletes certain item from the UI when the 'x' button is clicked 
         deleteExpItem: function(objID) {
             var grabID = document.getElementById(objID);
             grabID.parentNode.removeChild(grabID);
@@ -221,6 +225,7 @@ var UIController = (function() {
             arrEntries[0].focus();
         },
 
+        // Updates the budget to the UI
         showNewBudget: function(object) {
             var typeTemp = object.budgetTotal > 0 ? 'inc' : 'exp';
 
@@ -235,6 +240,7 @@ var UIController = (function() {
             }
         },
 
+        // Updates percentages to the UI
         showPercentsUI: function(arrList) {
             var percHTML = document.querySelectorAll(DOMstrings.perc);
 
@@ -247,6 +253,7 @@ var UIController = (function() {
             });
         },
 
+        // Displays the respective month
         showMonth: function() {
             var monthList = {
                 1: 'January',
@@ -268,6 +275,7 @@ var UIController = (function() {
             document.querySelector(DOMstrings.month).textContent = monthList[currMonth] + ' ' + currYear;
         },
 
+        // Changes UI color if we are adding income or expense
         changeColorType: function() {
             var sections = document.querySelectorAll(
                 DOMstrings.op + ',' +                
@@ -291,32 +299,34 @@ var UIController = (function() {
 })();
 
 var mainController = (function (budgetCtrl, UICtrl) {
+    // Listens to the overall window for specific responses
     var setupEventListeners = function() {
         var uiDOM = UICtrl.getDOM();
 
+        document.querySelector(uiDOM.deleteContainerButt).addEventListener('click', deleteItem);
+        document.querySelector(uiDOM.op).addEventListener('change', UICtrl.changeColorType);
         document.querySelector(uiDOM.addButt).addEventListener('click', newItem);
         document.addEventListener('keydown', function (event) {
             if (event.code === 'Enter') {
                 newItem();
             }
         });
-
-        document.querySelector(uiDOM.deleteContainerButt).addEventListener('click', deleteItem);
-
-        document.querySelector(uiDOM.op).addEventListener('change', UICtrl.changeColorType);
     };
 
+    // Wraps both updates in single function
     var update = function() {
         updateBudget();
         updatePercents();
     };
 
+    // Merges both UI and Budget Controller to display budget
     var updateBudget = function() {
         budgetCtrl.calcBudget();
         var budgetObject = budgetCtrl.getBudget();
         UICtrl.showNewBudget(budgetObject);
     };
 
+    // Merges both UI and Budget Controller to display percentages
     var updatePercents = function() {
         budgetCtrl.calcPercs();
         var percList = budgetCtrl.getPercs();
@@ -342,6 +352,8 @@ var mainController = (function (budgetCtrl, UICtrl) {
             update();
         }
     };
+
+    // Merges both UI and Budget Controller to delete items
     var deleteItem = function(event) {
         var pNodeID = event.target.parentNode.parentNode.parentNode.parentNode.id;
         if (pNodeID) {
